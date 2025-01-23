@@ -1,0 +1,67 @@
+//DELIMITACION DE CUENCAS 
+// acceder a las Colecciones de Basins y FreeFlowingRivers 
+WWF/HydroSHEDS/15CONDEM
+WWF/HydroSHEDS/15DIR
+WWF/HydroSHEDS/15ACC
+WWF/HydroSHEDS/v1/Basins/hybas_12
+WWF/HydroSHEDS/v1/FreeFlowingRivers
+
+//Delimitación usando geometria
+var AOI = ee.FeatureCollection('WWF/HydroSHEDS/v1/Basins/hybas_5').filterBounds(geometry);
+
+//Delimitación usando filtro de paises
+var world = ee.FeatureCollection("FAO/GAUL_SIMPLIED_500m/2015/level12");
+var AOI = world.filter(ee.filter.eq("ADMO_NAME", "Colombia"));
+Map.addLayer(AOI, {color: "#3376d8" }, "Zona AO", False);
+
+// 
+var DEM = ee.Image("WWF/HydroSHEDS/15CONDEM").select('b1').clip(AOI);
+Map.addLayer(DEM, {
+min: 0,
+  max: 100.0,
+  palette: ['#000000','#0034F5', '#1E7D83','#83C120','#FCC228'.'#FF8410','DEM', True);
+
+  
+
+//EXPORTAR ELEMENTOS VECTORIALES O RASTER
+Export.image.toDrive({
+  image: DEM,
+  description: 'DEM_100m',
+  scale: 100,
+  region: AOI});
+
+Export.table.toDrive({
+  image: Rios,
+  description: 'Rios',
+  fileFormat: 'SHP'
+});
+
+Export.table.toDrive({
+  image: Microcuencas,
+  description: 'Microcuencas',
+  fileFormat: 'SHP'
+});
+
+
+//DESCARGAR EL DEM de 30m
+
+var ALOSDSMDEM = ee.Image  ('JAXA/ALOS/AW3D30_V1_1');
+var ALOSDSM = ALOSDSMDEM.select('AVE').clip (geometry);
+Export.image.toDrive({
+  image: ALOSDSM.select("AVE"),
+  description: 'ALOSDSM_30m',
+  scale: 30,
+  region: geometry});
+
+// VISUALIZAR DEM
+var elevationVis = {
+  min: 0,
+  max: 100.0,
+  palette: [
+    '0602ff', '235cb1', '307ef3', '269db1', '30c8e2', '32d3ef', '3ae237',
+    'b5e22e', 'd6e21f', 'fff705', 'ffd611', 'ffb613', 'ff8b13', 'ff6e08',
+    'ff500d', 'ff0000', 'de0101', 'c21301'
+  ],
+};
+Map.addLayer(ALOSDSM, elevationVis, 'Mapa ALOSDEM');
+  

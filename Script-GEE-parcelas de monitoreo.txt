@@ -1,0 +1,47 @@
+/// PASAR ESTE CODIGO PARA GOOGLE EARTH ENGINE
+
+Import (7 entries)
+var geometry: Polygon, 4 vertices
+var forestal: Feature 0 (MultiPoint, 2 properties)
+var agricultura: Feature 0 (MultiPoint, 2 properties)
+var bosque: Feature 0 (MultiPoint, 2 properties)
+var caminos: Feature 0 (MultiPoint, 2 properties)
+var campo_bajo: Feature 0 (MultiPoint, 2 properties)
+var agua: Feature 0 (MultiPoint, 2 properties)
+
+var s2 = ee.ImageCollection("COPERNICUS/S2_SR_HARMONIZED")
+            .select('B.*')
+            .filterDate('2024-01-01','2024-12-31')
+            .filterBounds(geometry)
+            .filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE'))
+            .sort('CLOUDY_PIXEL_PERCENTAGE')
+            .first()
+
+print('mejor imagen', s2.get('CLOUDY_PIXEL_PERCENTAGE'))
+print('ID de la imagen', s2.get('system:id'))
+
+//Recortar a cena
+var s2_filter = s2.clip(geometry)
+
+//Visulizacion de imagenes
+Map.addLayer(s2_filter, {bands:['B4','B3','B2'],min:100, max:3000}, 'S2_RGB')
+Map.addLayer(s2_filter, {bands:['B11','B8','B4'],min:100, max:5000}, 'S2_SNR')
+
+//Muestras
+var muestras = ee.featureCollection([forestal, agricultura, bosque, caminos, campo_bajo, agua])
+
+//Extraer valor por pixel
+var training = s2_filter.sampleRegions(muestras, ['classe'], 20)
+print('muestras de entrenamiento', training)
+
+var bands = s2_filter.bandNames()
+
+//Entremnamiento del clasificador
+var trained = ee.Classifier.smileCart().train(training, 'classe', bands)
+
+//Aplicar la clasificacion
+var trained = s2_filter.Classify(trained)
+
+//Visualizar la clasificacion
+Map.addLayer(classified, {palette:['blue','green','red'],min:0, max:2}, 'Algoritmo_Cart')
+
