@@ -1,3 +1,3 @@
-# GEEscripts
-Google Earth Engine Scripts
-Contiene scripts de Google Earth Engine para el monitoreo de ecosistemas a traves de sensores remotos.
+# GOOGLE EARTH ENGINE scripts
+
+Some Google Earth engines use JavaScript language for ecosystem monitoring with remote sensing data.
